@@ -1,0 +1,130 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use List::Util qw(sum);
+$! = 84;
+
+#Error Handling
+scalar @ARGV == 9 || die "Invalid number of args\n";
+foreach my $x (@ARGV) {
+    $x =~ /^\d+$/ || die "Invalid arguments, please provide only positive integer\n";
+}
+
+
+my @data = (
+[99.0, 90.0, 80.0, 70.0, 60.0, 50.0, 40.0, 30.0, 20.0, 10.0, 5.00, 2.00, 1.00],
+[0.00, 0.02, 0.06, 0.15, 0.27, 0.45, 0.71, 1.07, 1.64, 2.71, 3.84, 5.41, 6.63],
+[0.02, 0.21, 0.45, 0.71, 1.02, 1.39, 1.83, 2.41, 3.22, 4.61, 5.99, 7.82, 9.21],
+[0.11, 0.58, 1.01, 1.42, 1.87, 2.37, 2.95, 3.66, 4.64, 6.25, 7.81, 9.84, 11.34],
+[0.30, 1.06, 1.65, 2.19, 2.75, 3.36, 4.04, 4.88, 5.99, 7.78, 9.49, 9.84, 11.34],
+[0.55, 1.61, 2.34, 3.00, 3.66, 4.35, 5.13, 6.06, 7.29, 9.24, 11.07, 11.67, 13.28],
+[0.7, 2.20, 3.07, 3.83, 4.57, 5.35, 6.21, 7.23, 8.56, 10.64, 12.59, 15.03, 16.81],
+[1.24, 2.83, 3.82, 4.67, 5.49, 6.35, 7.28, 8.38, 9.80, 12.02, 14.07, 16.62, 18.48],
+[1.65, 3.49, 4.59, 5.53, 6.42, 7.34, 8.35, 9.52, 11.03, 13.36, 15.51, 18.17, 20.09],
+[2.09, 4.17, 5.38, 6.39, 7.63, 8.34, 9.41, 10.66, 12.24, 14.68, 16.92, 19.68, 21.67],
+[2.56, 4.87, 6.18, 7.27, 8.30, 9.34, 10.47, 11.78, 13.44, 15.99, 18.31, 21.16, 23.21]);
+
+my @result;
+my @second_line;
+
+sub factorial {
+    my $res = 1;
+    for (my $i = 1; $i <= $_[0]; $i++) {
+        $res *= $i;
+    }
+    return $res;
+}
+
+sub bino_law {
+    my $p = $_[0];
+    my $n = 100;
+    my $tmp;
+    my $sum_to_ten;
+
+    for (my $i = 0; $i < 8; $i++) {
+        $sum_to_ten += $ARGV[$i];
+        $tmp += ((factorial(100) / (factorial($i) * factorial(100 - $i))) * 100 * (1 - $p)**(100 - $i) * $p**$i);
+        if ($sum_to_ten >= 10) {
+            push @result, $tmp;
+            $tmp = 0;
+            $sum_to_ten = 0;
+        }
+    }
+    push @result, 100 - sum(@result);
+}
+
+sub display {
+    my $old_i = 0;
+    my $sum_to_ten = 0;
+#First line
+    printf "   x    ";
+    for (my $i = 0; $ARGV[$i + 1]; $i++) {
+        $sum_to_ten += $ARGV[$i];
+        if ($sum_to_ten >= 10) {
+            ($old_i == $i && printf "| %d\t", $i) || (printf "| %d-%d\t", $old_i, $i);
+            $sum_to_ten = 0;
+            $old_i = $i + 1;
+        }
+    }
+    printf "| %d+\t| Total\n", $old_i;
+
+    #Second line
+    printf("  Ox\t");
+    for (my $i = 0; $i < scalar @second_line; $i++) {
+        printf "| %d\t", $second_line[$i];
+    }
+    printf "| 100\n";
+
+    #Third Line
+    printf("  Tx\t");
+    for (my $j = 0, my $i = 0, $sum_to_ten = 0; $ARGV[$i]; $i++) {
+        $sum_to_ten += $ARGV[$i];
+        if ($sum_to_ten >= 10) {
+            printf "| %.1f\t", $result[$j];
+            $sum_to_ten = 0;
+            $j++;
+        }
+    }
+    printf "| 100\n";
+}
+
+#Get proba
+my $p = 0;
+for (my $i = 0; $i < scalar @ARGV; $i++) {
+    $p += $i * $ARGV[$i];
+}
+$p = $p / 10000;
+
+#Compute all
+bino_law($p);
+
+#Do the last calculation
+my $square_sum;
+for (my $sum_to_ten = 0, my $i = 0, my $j = 0; $i < 9; $i++) {
+    $sum_to_ten += $ARGV[$i];
+    if ($sum_to_ten >= 10) {
+        $second_line[$j] = $sum_to_ten;
+        $sum_to_ten = 0;
+        $j++;
+    }
+}
+
+for (my $i = 0; $i != scalar @result; $i++) {
+    $square_sum += ($second_line[$i] - $result[$i])**2 / $result[$i];
+}
+my $freedom = scalar @result - 2;
+
+#Print
+display();
+printf("Distribution:\t\tB(100, %0.4f)\n" ,($p));
+printf("Chi-squared:\t\t%0.3f\n" , ($square_sum));
+printf("Degrees of freedom:\t%d\n", $freedom);
+
+$data[$freedom][0] > $square_sum && printf "Fit validity:\t\tP > 99%%\n";
+$data[$freedom][12] < $square_sum && printf "Fit validity:\t\tP < 1%%\n";
+for (my $i = 1; $i < 12; $i++) {
+    if ($data[$freedom][$i] < $square_sum) {
+        printf "Fit validity:\t\t%d%% < P < %d%%\n", $data[0][$i + 1], $data[0][$i];
+        last;
+    }
+}

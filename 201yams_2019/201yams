@@ -1,0 +1,116 @@
+#!/usr/bin/perl
+##
+## EPITECH PROJECT, 2020
+## 201Yams
+## File description:
+## Calculate probability to have a specific combination for yams
+##
+
+use warnings;
+$! = 84;
+
+sub fac {return ($_[0] == 0 || $_[0] == 1) ? 1: $_[0] * fac($_[0] - 1);}
+
+# CHECK USAGE
+if ($ARGV[0] eq "-h") {
+    print
+"USAGE:
+    ./201yams d1 d2 d3 d4 d5 c
+DESCRIPTION
+    d1      value of the first die (0 if not thrown)
+    d2      value of the second die (0 if not thrown)
+    d3      value of the third die (0 if not thrown)
+    d4      value of the fourth die (0 if not thrown)
+    d5      value of the fifth die (0 if not thrown)
+    c       expected combination";
+    exit (0);
+}
+
+# CHECK ERROR
+eval (@ARGV == 6) || die("Please enter 6 arguments");
+for (my $i = 0; $i != 5; $i++) {
+    $ARGV[$i] =~ /^[0-6]$/ || die("Error: Dice $i seems to have a problem");
+}
+my @combi = ("pair_", "three_", "four_", "yams_", "straight_");
+foreach (@combi) {
+    my $regexp = "^" . $_ . "[1-6]{1}\$";
+    $ARGV[5] =~ /$regexp/ && last;
+    $ARGV[5] =~ /^full_[1-6]{1}_[1-6]{1}$/ && last;
+    (\$_ != \$combi[-1]) || die("Error: This combination doesn't exist");
+}
+
+##CALCUL
+sub binomiale
+{
+    my $nb_success = $_[0]; my $nb_attempt = $_[1];
+
+    my $coeff = fac($nb_attempt) / (fac($nb_success) * fac($nb_attempt - $nb_success));
+    return ($coeff * (1/6)**$nb_success * (5/6)**($nb_attempt - $nb_success));
+}
+
+sub get_occur{
+    my $nb = 0;
+
+    for (my $i = 0; $i != 5; $i++) {
+        if ($ARGV[$i] == $_[0]) {
+            $nb++;
+        }
+    }
+    return ($nb);
+}
+
+sub calculate{
+    my $nb_required = $_[0];
+    my $occur = (get_occur($combination[1]) > $nb_required) ? $nb_required : get_occur($combination[1]);
+    my $res = 0;
+
+    for (; $nb_required != 6; $nb_required++) {
+        $res += binomiale(($nb_required - $occur), (5 - $occur));
+    }
+    return ($res * 100);
+}
+
+@combination = split('_', $ARGV[5]);
+
+my $res = 0;
+if ($combination[0] eq "pair") {
+    $res = calculate(2);
+    printf ("Chances to get a %d pair: %.2f%s\n", $combination[1], $res, "%");
+}
+
+if ($combination[0] eq "three") {
+    $res = calculate(3);
+    printf ("Chances to get a %d three-of-a-kind: %.2f%s\n", $combination[1], $res, "%");
+}
+
+if ($combination[0] eq "four") {
+    $res = calculate(4);
+        printf ("Chances to get a %d four-of-a-kind: %.2f%s\n", $combination[1], $res, "%");
+}
+
+if ($combination[0] eq "yams") {
+    $res = calculate(5);
+        printf ("Chances to get a %d yams: %.2f%s\n", $combination[1], $res, "%");
+}
+
+if ($combination[0] eq "full") {
+  ($combination[1] != $combination[2]) || die("Invalid full");
+    my $remaining_three = 3 - ((get_occur($combination[1]) > 3) ? 3 : get_occur($combination[1]));
+    my $remaining_pair = 2 - ((get_occur($combination[2]) > 2) ? 2 : get_occur($combination[2]));
+    my $remaining = $remaining_three + $remaining_pair;
+
+    my $res = fac($remaining) / (fac($remaining_three) * fac($remaining - $remaining_three));
+    $res = $res / 6**$remaining * 100;
+    printf ("Chances to get a %d full of %d: %.2f%s\n", $combination[1], $combination[2], $res, "%");
+}
+
+if ($combination[0] eq "straight") {
+    ($combination[1] == 5 || $combination[1] == 6) || die("Invalid straight");
+    for (my $i = 0; $i != 5; $i++) {
+      $occur += (get_occur($combination[1]) > 1) ? 1 : get_occur($combination[1]);
+      $combination[1]--;
+    }
+    $res = fac(5 - $occur)/6**(5 - $occur);
+    $res *= 100;
+    printf ("Chances to get a %d straight: %.2f%s\n", $combination[1] + 5, $res, "%");
+}

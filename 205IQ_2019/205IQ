@@ -1,0 +1,71 @@
+#!/usr/bin/lua
+--
+-- EPITECH PROJECT, 2020
+-- 205IQ_2019
+-- File description:
+-- 2nd year maths project @Epitech
+--
+if (arg[1] == "-h") then
+    print("USAGE")
+    print("\t./205IQ")
+    print("\nDESCRIPTION")
+    print("\t u\tmean")
+    print("\t s\tstandard deviation")
+    print("\t IQ1\tminimum IQ")
+    print("\t IQ2\tmaximum IQ")
+end
+
+-- ERROR HANDLING
+if (#arg < 2 or #arg > 4) then
+    os.exit(84)
+end
+
+if (tonumber(arg[2])) == nil then
+    os.exit(84)
+end
+
+if (tonumber(arg[1]) == nil or tonumber(arg[1]) < 0 or tonumber(arg[1]) > 200) then
+    os.exit(84);
+end
+
+if (arg[3]) then
+    if (tonumber(arg[3]) == nil or tonumber(arg[3]) < 0 or tonumber(arg[3]) > 200) then
+        os.exit(84);
+    end
+end
+
+if (arg[4]) then
+    if (tonumber(arg[4]) == nil or tonumber(arg[4]) < 0 or tonumber(arg[4]) > 200 or arg[4] < arg[3]) then
+        os.exit(84);
+    end
+end
+
+function formula (x, mu, sigma)
+    return (1  / (sigma * math.sqrt(2*math.pi))) * math.exp( -math.pow((x - mu),2) / (2 * math.pow(sigma, 2)) )
+end
+
+-- PROJECT
+if (#arg == 2)
+then
+    for i=0,200 do
+        io.write(string.format("%d %.5f\n", i, formula(i, arg[1], arg[2])) );
+    end
+end
+
+if (#arg == 3)
+then
+    local sum = 0;
+    for i=0,arg[3],0.01 do
+        sum = sum + formula(i, arg[1], arg[2]);
+    end
+    io.write(string.format("%.1f%% of people have an IQ inferior to %d\n", sum, arg[3]));
+end
+
+if (#arg == 4)
+then
+    local sum = 0;
+    for i=arg[3],arg[4],0.01 do
+        sum = sum + formula(i, arg[1], arg[2]);
+    end
+    io.write(string.format("%.1f%% of people have an IQ between %d and %d\n", sum, arg[3], arg[4]));
+end

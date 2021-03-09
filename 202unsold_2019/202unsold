@@ -1,0 +1,125 @@
+#!/usr/bin/perl
+## EPITECH PROJECT, 2020
+## math
+## File description:
+## 202unsold
+
+use strict;
+use warnings;
+$! = 84;
+
+##Print USAGE
+if (scalar @ARGV == 1 && $ARGV[0] eq "-h") {
+    print "USAGE
+    ./202unsold a b
+DESCRIPTION
+    a       constant computed from past results
+    b       constant computed from past results\n";
+    exit (0);
+}
+
+##Error Handling
+scalar @ARGV == 2 || die "Invalid number of arguments";
+$ARGV[0] > 50 || die "A should be greater than 50";
+$ARGV[1] > 50 || die "B should be greater than 50";
+
+##Init all
+my $a = $ARGV[0];
+my $b = $ARGV[1];
+
+##Compute all
+our @result;
+my $x = 10;
+my $y = 10;
+
+for (my $i = 0; $i < 5 ; $i++) {
+    $result[$i][5] = 0;
+    for (my $j = 0; $j < 5; $j++) {
+        $result[$i][$j] = (($a - $x) * ($b - $y)) / ((5 * $a - 150) * (5 * $b - 150));
+        $result[$i][5] += $result[$i][$j];
+        $x += 10;
+    }
+    $y += 10;
+    $x = 10;
+}
+for (my $i = 0; $i < 6; $i++) {
+    $result[5][$i] = compute_x_law($i);
+}
+
+##Display first part
+print "--------------------------------------------------------------------------------
+        X=10   X=20   X=30   X=40   X=50   Y law";
+for (my $i = 0; $i < 5 ; $i++) {
+    printf ("\nY=%d    ", ($i+1)*10);
+    for (my $j = 0; $j < 5; $j++) {
+        printf ("%.3f  ", $result[$i][$j]);
+    }
+    printf ("%.3f", $result[$i][5]);
+}
+printf ("\nX Law ");
+for (my $i = 0; $i < 6; $i++) {
+    printf ("  %.3f", $result[5][$i]);
+}
+printf "\n--------------------------------------------------------------------------------
+z       20     30     40     50     60     70     80     90     100\n";
+print "p(Z=z)";
+for (my $i = 20; $i != 110; $i += 10) {
+    printf ("  %.3f", compute_z($i));
+}
+print "\n--------------------------------------------------------------------------------\n";
+##Expected value and variance
+my $expect = 0;
+my $variance = 0;
+for (my $i = 0, $expect = 0; $i != 5; $i++) {
+    $expect += $result[5][$i] * (($i + 1) * 10);
+}
+for (my $i = 0, my $val; $i != 5; $i++) {
+    $val = (($i + 1) * 10);
+    $variance  += (( $val - $expect)**2) * $result[5][$i];
+}
+printf ("expected value of X:  %.1f\n", $expect);
+printf ("variance of X:        %.1f\n", $variance);
+
+for (my $i = 0, $expect = 0; $i != 5; $i++) {
+    $expect += $result[$i][5] * (($i + 1) * 10);
+}
+$variance = 0;
+for (my $i = 0, my $val; $i != 5; $i++) {
+    $val  = (($i + 1) * 10);
+    $variance  += (( $val - $expect)**2) * $result[$i][5];
+}
+printf ("expected value of Y:  %.1f\n", $expect);
+printf ("variance of Y:        %.1f\n", $variance);
+
+for (my $i = 20, $expect = 0; $i != 110; $i += 10) {
+    $expect += compute_z($i) * $i;
+}
+for (my $i = 20, $variance = 0; $i != 110; $i++) {
+    $variance  += (( $i - $expect)**2) * compute_z($i);
+}
+printf ("expected value of Z:  %.1f\n", $expect);
+printf ("variance of Z:        %.1f\n", $variance);
+print "--------------------------------------------------------------------------------\n";
+## USEFUL SUBROUTINE
+
+##Compute X Law
+sub compute_x_law {
+    my $sum = 0;
+    for (my $i = 0; $i < 5; $i++) {
+        $sum += $result[$i][$_[0]];
+    }
+    return $sum;
+}
+
+##Compute Z
+sub compute_z {
+    my $res = 0;
+    for (my $i = 0; $i < 5 ; $i++) {
+        for (my $j = 0; $j < 5; $j++) {
+            if (($i + $j + 2) * 10 == $_[0]) {
+                $res += $result[$i][$j];
+            }
+        }
+    }
+    return $res;
+}

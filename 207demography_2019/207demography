@@ -1,0 +1,125 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+$! = 84;
+
+scalar @ARGV > 0 or die "No arguments provided\n";
+foreach my $i (@ARGV) {
+    $i =~ m/^[A-Z]{3}$/ or die "Invalid country code: $i\n";
+}
+open(my $fh, '<', "207demography_data.csv") or die "Could not open file\n";
+
+my @year_list = split /;/, <$fh>;
+my @country_data;
+#Get line
+while (my $line = <$fh>) {
+    ($line =~ m/;\Q$ARGV[0];/) && (@country_data = split /;/, $line);
+}
+(!@country_data) && die ("Invalid country code\n");
+
+#Country
+print "Country: $country_data[0]\n";
+shift @country_data for 1..2;
+shift @year_list for 1..2;
+
+sub fit1 {
+    #Calcul
+    my $sum_pop = 0;
+    my $sum_pop_square = 0;
+    my $sum_year = 0;
+    my $sum_year_square = 0;
+    my $sum_pop_year = 0;
+
+    foreach my $year (@year_list) {
+        $sum_year += $year;
+        $sum_year_square += $year**2;
+    }
+    my $i = 0;
+    foreach my $pop (@country_data) {
+        ($pop !~ /^\d+$/) && next;
+        $sum_pop += ($pop / 1000000);
+        $sum_pop_year += ($pop / 1000000) * $year_list[$i];
+        $i++;
+    }
+
+    my $num = $i * $sum_pop_year - $sum_year * $sum_pop;
+    my $den = $i * $sum_year_square - $sum_year**2;
+    my $a = $num/$den;
+    $num = $sum_pop * $sum_year_square - $sum_year * $sum_pop_year;
+    $den = (scalar @year_list) * $sum_year_square - $sum_year**2;
+    my $b = $num/$den;
+    my $rmsd = 0;
+    my $sum_y = 0;
+    $i = 0;
+    foreach my $year (@year_list) {
+        $rmsd += (($country_data[$i] / 1000000) - ($a * $year + $b))**2;
+        $i++;
+    }
+    $rmsd = sqrt($rmsd / $i);
+    #Print
+    print "Fit1\n";
+    printf "   Y = %.2f X ", $a;
+    ($b < 0) ? printf "- " : printf "+ ";
+    printf "%.2f\n", abs($b);
+    printf "   Root-mean-square-deviation: %.2f\n", $rmsd;
+    printf "   Population in 2050: %.2f\n", ($a * 2050 + $b);
+    for (my $j = 1960, $i = 0; $j != 2585; $j++, $i++) {
+        $sum_y += $a * $j + $b;
+    }
+    return ($sum_y / $i++);
+}
+
+sub fit2 {
+    #Calcul
+    my $sum_pop = 0;
+    my $sum_pop_square = 0;
+    my $sum_year = 0;
+    my $sum_pop_year = 0;
+
+    foreach my $year (@year_list) {
+        $sum_year += $year;
+    }
+    my $i = 0;
+    foreach my $pop (@country_data) {
+        ($pop !~ /^\d+$/) && next;
+        $sum_pop += ($pop / 1000000);
+        $sum_pop_square += ($pop / 1000000)**2;
+        $sum_pop_year += ($pop / 1000000) * $year_list[$i];
+        $i++;
+    }
+
+    my $num = $i * $sum_pop_year - $sum_pop * $sum_year;
+    my $den = $i * $sum_pop_square - $sum_pop**2;
+    my $a = $num/$den;
+    $num = $sum_year * $sum_pop_square - $sum_pop * $sum_pop_year;
+    $den = $i * $sum_pop_square - $sum_pop**2;
+    my $b = $num/$den;
+    my $rmsd = 0;
+    $i = 0;
+    my $sum_y = 0;
+    foreach my $year (@year_list) {
+        $rmsd += (($country_data[$i] / 1000000) - (($year - $b)) / $a)**2;
+        $i++;
+    }
+    $rmsd = sqrt($rmsd / $i);
+    #Print
+    print "Fit2\n";
+    printf "   X = %.2f Y ", $a;
+    ($b < 0) ? printf "- " : printf "+ ";
+    printf "%.2f\n", abs($b);
+    printf "   Root-mean-square-deviation: %.2f\n", $rmsd;
+    printf "   Population in 2050: %.2f\n", (2050 - $b) / $a;
+
+    for (my $j = 1960, $i = 0; $j != 2585; $j++, $i++) {
+        $sum_y += ($j - $b) / $a;
+    }
+    return ($sum_y / $i++);
+}
+my $fit1 = fit1();
+my $fit2 = fit2();
+
+printf "%.4f\n", ($fit1 / $fit2);
+
+# Correlation
+print "Correlation: ";

@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+##
+## EPITECH PROJECT, 2020
+## 204ducks
+## File description:
+## Compute informations before a duck come back
+##
+
+use strict;
+use warnings;
+use POSIX;
+$! = 84;
+
+scalar @ARGV == 1 || die "ERROR: Invalid number of arguments";
+$ARGV[0] =~ /^\d+.?\d*$/ || die "ERROR: Invalid scope for a";
+$ARGV[0] <= 2.5 || die "ERROR: Invalid scope for a";
+
+sub proba {
+    my ($t) = @_;
+    return (-$ARGV[0]*exp(-$t) - (4 - 3*$ARGV[0]) / 2*exp(-2*$t) - (2*$ARGV[0] - 4)/4 *exp(-4*$t) );
+}
+
+
+my $average = ((6 + 3*$ARGV[0]) / 8);
+printf "Average return time: %dm %.0fs\n", $average, ($average - int($average)) * 60;
+
+my $res = 0;
+my $t = 0;
+while ($t < 100) {
+    my $proba = $ARGV[0]*exp(-$t) + (4 - 3*$ARGV[0])*exp(-2 * $t) + (2*$ARGV[0] - 4)*exp(-4*$t);
+    $res += ($t - $average)**2 *  $proba / 1000;
+    $t += 0.001;
+}
+$res = sqrt($res);
+printf "Standard deviation: %.3f\n", $res;
+
+sub come_back {
+    for (my $i = 0; $i < 1440; $i += 0.001) {
+        if (proba($i / 1) - proba(0) >= $_[0]) {
+            return $i;
+        }
+    }
+    exit(0);
+}
+
+my $time = come_back(0.50);
+print $time;
+my $percentage = (proba(1) - proba(0)) * 100;
+printf "Time after which 50%s of the ducks are back: %dm %.2ds\n", "%", $time , ($time - int($time)) * 60;
+$time = come_back(0.99);
+printf "Time after which 50%s of the ducks are back: %dm %.2ds\n", "%", $time , ($time - int($time)) * 60;
+printf "Percentage of ducks back after 1 minute: %.1f%s\n", $percentage, "%";
+$percentage = (proba(2) - proba(0)) * 100;
+printf "Percentage of ducks back after 2 minutes: %.1f%s\n", $percentage, "%";

@@ -1,0 +1,16 @@
+#!/usr/bin/perl
+use strict;use warnings;
+$! = 84;
+scalar @ARGV == 3 or die "3 arguments required, no more, no less\n";
+($ARGV[0] =~ /^\d+$/ && $ARGV[1] =~ /^\d+$/ && $ARGV[2] =~ /^\d+.?\d*$/) or die "Invalid arguments format\n";
+($ARGV[0] > $ARGV[1] && $ARGV[2] <= 100) || die "Invalid value\n";
+my $pop = $ARGV[0]; my $sample = $ARGV[1]; my $proba = $ARGV[2];
+my $variance = abs(((($proba * (100 - $proba)) /10000) / $sample) * (($pop - $sample) / ($pop - 1)));
+my $conf95 = (1.96 * sqrt($variance) * 2) / 2 * 100;
+my $conf99 = (2.58 * sqrt($variance) * 2) / 2 * 100;
+printf "Population size:\t\t%d\nSample size:\t\t\t%d\n", $pop, $sample;
+printf "Voting intentions:\t\t%.2f%%\nVariance:\t\t\t%f\n", $proba, $variance;
+printf "95%% confidence interval: [%.2f%; %.2f%]\n", ($proba - $conf95 > 0) ? $proba - $conf95 : 0
+, ($proba + $conf95 < 100) ? $proba + $conf95 : 100;
+printf "99%% confidence interval: [%.2f%; %.2f%]\n", ($proba - $conf99 > 0) ? $proba - $conf99 : 0
+, ($proba + $conf99 < 100) ? $proba + $conf99 : 100;

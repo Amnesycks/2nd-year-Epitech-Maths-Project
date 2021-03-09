@@ -1,0 +1,58 @@
+#!/usr/bin/python3
+##
+## EPITECH PROJECT, 2020
+## project
+## File description:
+## 203hotline
+##
+import  sys
+import  math
+import  time
+
+def get_coeff(n, k):
+    return (math.factorial(n) // (math.factorial(k) * math.factorial(n - k)))
+
+if len(sys.argv) == 3:
+    print(str(sys.argv[2]) + "-combination of a " + str(sys.argv[1]) + " set:")
+    print(get_coeff(int(sys.argv[1]), int(sys.argv[2])))
+
+elif len(sys.argv) == 2:
+#Binomial
+     overload = 0
+     proba = (int(sys.argv[1]) / 28800)
+     time_start = time.time()
+
+     print("Binomial distribution:")
+     for i in range(0, 51):
+         result = get_coeff(3500, i) * (proba**i) * ((1 - proba)**(3500 - i))
+         print("%d -> %.3f" % (i, result), end='')
+         if ((i + 1) % 5 == 0):
+             print('\n', end='')
+         elif i != 50:
+             print('\t', end='')
+         if i > 25:
+             overload += result
+     print("\nOverload: %.1f" % (overload * 100) + "%")
+     print("computation time: %.2f ms" % ((time.time() - time_start) * 1000))
+
+# Poisson
+     overload = 0
+     proba *= 3500
+     time_start = time.time()
+
+     print("\nPoisson distribution:")
+     for i in range(0, 51):
+         result = math.exp(-proba) * (proba ** i) / math.factorial(i)
+         print("%d -> %.3f" % (i, result), end='')
+         if ((i + 1) % 5 == 0):
+              print('\n', end='')
+         elif i != 50:
+              print('\t', end='')
+         if i > 25:
+             overload += result
+     print("\nOverload: %.1f" % (overload * 100) + "%")
+     print("computation time: %.2f ms" % ((time.time() - time_start) * 1000))
+
+else:
+    sys.exit(84)
+sys.exit(0)

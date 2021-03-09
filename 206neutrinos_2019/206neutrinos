@@ -1,0 +1,67 @@
+#!/usr/bin/lua
+
+if (#arg ~= 4) then
+    print("Invalid number of arguments, please provide 4 arguments")
+    os.exit(84)
+end
+
+if ((tonumber(arg[1]) == nil) and arg[1] < 0) then
+    print("ERROR: n isn't a positive number")
+    os.exit(84);
+end
+
+if ((tonumber(arg[2]) == nil) or (tonumber(arg[3]) == nil) or (tonumber(arg[4]) == nil) ) then
+    print("ERROR: a, h or sd aren't number")
+    os.exit(84);
+end
+
+nb_value = tonumber(arg[1])
+arithmetic = tonumber(arg[2])
+harmonic = tonumber(arg[3])
+deviation = tonumber(arg[4])
+root = 0
+
+function getStandardDeviation(new_value)
+    deviation = math.sqrt((((math.pow(deviation, 2) + math.pow(arithmetic, 2))
+    * (nb_value - 1) + math.pow(new_value, 2)) / nb_value) - math.pow(((arithmetic
+    * (nb_value - 1)) + new_value) / nb_value, 2))
+end
+
+function getArithmeticMean(new_value)
+    arithmetic = ((arithmetic * (nb_value - 1)) + new_value) / nb_value
+end
+
+function getRootMean(new_value)
+    return math.sqrt(((deviation^2 + arithmetic^2) * (nb_value - 1) + new_value^2) / nb_value)
+end
+
+function getHarmonicMean(new_value)
+    harmonic = nb_value / (((1 / harmonic) * (nb_value - 1)) + (1 / new_value))
+end
+
+function printValue(self)
+    io.write(string.format("  Number of values:    %.0f\n",  nb_value))
+    io.write(string.format("  Standard deviation:  %.2f\n", deviation))
+    io.write(string.format("  Arithmetic mean:     %.2f\n", arithmetic))
+    io.write(string.format("  Root mean square:    %.2f\n", root))
+    io.write(string.format("  Harmonic mean:       %.2f\n\n", harmonic))
+end
+
+while (true) do
+    io.write("Enter next nb_value: ")
+    str = io.read("*l")
+    if str == "END" then
+        os.exit(0)
+    end
+    if tonumber(str) == nil then
+        Os.exit(84)
+    end
+
+    new_value = tonumber(str)
+    nb_value = nb_value + 1
+    root = getRootMean(new_value)
+    getStandardDeviation(new_value)
+    getArithmeticMean(new_value)
+    getHarmonicMean(new_value)
+    printValue()
+end
